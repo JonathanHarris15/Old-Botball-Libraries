@@ -1,2 +1,3 @@
 # Botball-Libraries
-Here is my botball libraries that I use 
+Here is my assortment of functions I use. Hope they are usefull
+
