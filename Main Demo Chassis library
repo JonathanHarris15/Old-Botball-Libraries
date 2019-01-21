@@ -1,0 +1,222 @@
+#define RIGHT 0 
+#define LEFT 3
+#define ninetyDeg 460000
+#define oneEighty 930000
+#define fortyFive 232500
+#define ticksPerCm 12
+#define yellow 0
+#define blue 1
+#define red 2
+
+//line following 
+int rSpeed;
+int lSpeed;
+//square up
+int lftDone = 0;
+int rghtDone = 0;
+int squareDone = 0;
+//cameracode
+int blobArea;
+int blobAvg;
+int blobCount = 0;
+int blobRaw = 0;
+//callibrate gyros
+int gyroCounter = 0;
+int gyroMass = 0;
+int gyroAvg;
+int gyroBias;
+//turning 
+float theta;
+float targetTheta;
+//gyroStraight
+int target;
+int driveCorrection;
+
+
+/* this line follow code is made in a way in wich it sees all the grey values between as well so if it sees a 
+dark grey it will turn harder than if it saw a light grey*/
+
+void lineFollow(int dist,int port){
+
+    cmpc(0);
+    cmpc(3);
+
+    while(gmpc(RIGHT) + gmpc(LEFT)/2  < dist){
+
+
+
+        rSpeed = -1* analog(port) + 3000; // I used a graph to get how hard it would turn and these are the slope functions
+        lSpeed = analog(0) - 200;
+
+        mav(0,lSpeed - 500);
+        mav(3,rSpeed - 500);
+
+
+    }
+}
+
+
+// uses two sensors to line up on a black line 
+void squareUpFront(){
+
+    while(squareDone == 0){
+        if(analog(2) < 3600){
+            mav(LEFT,400);
+            rghtDone = 1;
+        }else{
+            mav(LEFT,0);
+            rghtDone = 0;
+        }
+        if(analog(3) < 3500){
+            mav(RIGHT,400);
+            lftDone = 1;
+        }else{
+            mav(RIGHT,0);
+            lftDone = 0;
+        }
+        if(lftDone == 0 && rghtDone == 0){
+            squareDone = 1;
+        }
+    }
+
+}
+
+//checks to see if a certain port senses black
+int analogIsBlack(int port){
+
+    if(analog(port) > 2500){
+        return(1);
+    }else{
+        return(0);
+    }
+}
+
+
+
+
+
+
+
+
+//untested color code will fix later
+int colorSense(int color, int loops) {
+
+  while(blobCount < loops){
+
+    camera_open_black();
+    if(color == 0){
+      if(get_object_area(yellow,1) > blobArea){
+        blobRaw = blobRaw + 1;
+      } 
+    }
+
+    if(color == 1){
+      if(get_object_area(blue,0) > blobArea){
+        blobRaw = blobRaw + 1; 
+      }
+    }
+
+    if(color == 2){
+      if(get_object_area(red,0) > blobArea){
+        blobRaw = blobRaw + 1; 
+      }
+      
+    }
+    
+  }
+
+  blobAvg = blobRaw / loops;
+  
+  if(blobAvg > 0.6){
+    return 0;
+  }else{
+    return 1;
+  }
+  
+}
+
+
+
+
+
+
+// callibraes the bias of the gyros
+void callibrateGyros(){
+    
+     while(gyroCounter < 1000){
+    	
+        gyroMass = gyroMass + gyro_z();
+        gyroCounter++;
+        msleep(1);
+    }
+    
+    gyroAvg = (gyroMass / 1000);
+    printf("average Z value: %d \n", gyroAvg);
+    gyroBias = gyroAvg;
+    
+}
+
+//uses the gyroscopes to make turns
+void gyroTurn(int R,int L,int turnDeg){
+    
+    if(turnDeg == 90){
+        targetTheta = ninetyDeg;
+    }
+    if(turnDeg == 45){
+        targetTheta = fortyFive;
+    }
+    if(turnDeg == 180){
+        targetTheta = oneEighty;
+    }
+    
+     while(theta < targetTheta){
+        msleep(10);
+        theta = theta + (abs(gyro_z() - gyroBias) * 10);
+        mav(RIGHT,R);
+        mav(LEFT,L);
+    }
+                 
+    mav(3,0);
+    mav(0,0);  
+    msleep(1000);
+    
+}
+
+//uses the gyroscopes to drive straight 
+void gyroStraight(int dist,int speed){
+
+    cmpc(0);
+    cmpc(3);
+    
+   callibrateGyros();
+    
+    while(gmpc(RIGHT) < 15000){
+        
+        driveCorrection = 200;
+  
+        if(theta < 250 && theta > -250){ 
+            mav(RIGHT,speed);
+            mav(LEFT,speed);
+        }else if(theta < 250){
+            mav(RIGHT,speed + driveCorrection);
+            mav(LEFT,speed - driveCorrection);
+        }else{
+            mav(RIGHT,speed - driveCorrection);
+            mav(LEFT,speed + driveCorrection);
+        }
+            
+            msleep(10);
+            theta = theta+(gyro_z() - gyroBias)*10;
+        }
+        
+}
+
+//simple servo command
+void servo(int port, int pos){
+    
+    enable_servos();
+    set_servo_position(port,pos);
+    msleep(1000);
+    disable_servos();
+    
+}
