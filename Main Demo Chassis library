@@ -1,3 +1,5 @@
+
+    
 #define RIGHT 0 
 #define LEFT 3
 #define ninetyDeg 460000
@@ -5,8 +7,8 @@
 #define fortyFive 232500
 #define ticksPerCm 12
 #define yellow 0
-#define blue 1
-#define red 2
+#define red 1
+#define blue 2
 
 //line following 
 int rSpeed;
@@ -31,6 +33,8 @@ float targetTheta;
 //gyroStraight
 int target;
 int driveCorrection;
+//center on color 
+int centerCorrection;
 
 
 /* this line follow code is made in a way in wich it sees all the grey values between as well so if it sees a 
@@ -57,18 +61,18 @@ void lineFollow(int dist,int port){
 
 
 // uses two sensors to line up on a black line 
-void squareUpFront(){
+void squareUp(int speed){
 
     while(squareDone == 0){
         if(analog(2) < 3600){
-            mav(LEFT,400);
+            mav(LEFT,speed);
             rghtDone = 1;
         }else{
             mav(LEFT,0);
             rghtDone = 0;
         }
         if(analog(3) < 3500){
-            mav(RIGHT,400);
+            mav(RIGHT,speed);
             lftDone = 1;
         }else{
             mav(RIGHT,0);
@@ -80,6 +84,7 @@ void squareUpFront(){
     }
 
 }
+
 
 //checks to see if a certain port senses black
 int analogIsBlack(int port){
@@ -98,36 +103,39 @@ int analogIsBlack(int port){
 
 
 
-//untested color code will fix later
+//main color code for detecting color
 int colorSense(int color, int loops) {
-
+    
+	camera_open_black();
+    
   while(blobCount < loops){
 
-    camera_open_black();
+    camera_update();
     if(color == 0){
-      if(get_object_area(yellow,1) > blobArea){
+      if(get_object_confidence(yellow,0) > 0.6){
         blobRaw = blobRaw + 1;
       } 
     }
 
     if(color == 1){
-      if(get_object_area(blue,0) > blobArea){
+      if(get_object_confidence(blue,0) > 0.6){
         blobRaw = blobRaw + 1; 
       }
     }
 
     if(color == 2){
-      if(get_object_area(red,0) > blobArea){
+      if(get_object_confidence(red,0) > 0.6){
         blobRaw = blobRaw + 1; 
       }
       
     }
+    blobCount = blobCount + 1;
     
   }
 
-  blobAvg = blobRaw / loops;
   
-  if(blobAvg > 0.6){
+  
+  if(blobRaw > 70){
     return 0;
   }else{
     return 1;
@@ -159,6 +167,7 @@ void callibrateGyros(){
 //uses the gyroscopes to make turns
 void gyroTurn(int R,int L,int turnDeg){
     
+    callibrateGyros();
     if(turnDeg == 90){
         targetTheta = ninetyDeg;
     }
@@ -220,3 +229,42 @@ void servo(int port, int pos){
     disable_servos();
     
 }
+
+
+
+//has the robot line itself up with the color you select
+void centerOnColor(int channel){
+    
+    camera_open_black();
+    
+    centerCorrection = 200;
+    while(get_object_center_x(channel,0) != 80){ 
+        
+        camera_update();
+        
+        if(get_object_center_x(channel,0) < 80){
+            mav(RIGHT,centerCorrection);
+            mav(LEFT,-centerCorrection);
+        }
+        if(get_object_center_x(channel,0) > 80){
+            mav(RIGHT,-centerCorrection);
+            mav(LEFT, centerCorrection);
+        }
+    }
+    
+    camera_close();
+}
+
+// untested
+void driveIntoBlack(int initSpeed, int slowDown){
+    while(analogIsBlack(0) == 1){
+        mav(RIGHT,initSpeed);
+        mav(LEFT,initSpeed);
+    }
+    if(analogIsBlack(0) == 0){
+        squareUp(initSpeed - slowDown);
+    }
+}
+            
+    
+    
