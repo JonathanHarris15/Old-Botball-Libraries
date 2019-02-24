@@ -250,19 +250,19 @@ void gyroStraight(int dist,int speed){
 
         driveCorrection = theta/5000;
 
-        if(theta < 150 && theta > -150){ 
+        if(theta < 150 && theta > -150){    
             mav(RIGHT,speed);
             mav(LEFT,speed);
         }else if(theta < 150){
             mav(RIGHT,speed + driveCorrection);
             mav(LEFT,speed - driveCorrection);
         }else{
-            mav(RIGHT,speed - driveCorrection);
+            mav(RIGHT,speed - driveCorrection);      
             mav(LEFT,speed + driveCorrection);
         }
 
         msleep(10);
-        theta = theta+(gyro_z() - gyroBias)*10;
+        theta = theta+(gyro_z() - gyroBias)* 10;           
     }
 
 }
