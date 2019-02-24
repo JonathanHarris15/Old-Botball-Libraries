@@ -52,14 +52,14 @@ void lineFollow(int dist,int port){
     cmpc(0);
     cmpc(3);
 
-    while(gmpc(RIGHT) + gmpc(LEFT)/2  < dist){ //just getting the average of the wheel ticks
+    while(gmpc(RIGHT) + gmpc(LEFT)/2  < dist){
 
 
 
         rSpeed = -1* analog(port)/2 + 4000; // I used a graph to get how hard it would turn and these are the slope functions
         lSpeed = analog(port)/2 - 200;
 
-        mav(0,lSpeed - 500); //The reason I subtract by 500 is I like the incline of the slope but I don't want it to go that fast
+        mav(0,lSpeed - 500);
         mav(3,rSpeed - 500);
 
 
@@ -87,7 +87,7 @@ void squareUp(int speed){
             mav(RIGHT,0);
             lftDone = 0;
         }
-        if(lftDone == 0 && rghtDone == 0){ //I just decided to do it this way so I can clearly see how everything is working and not have to worry about all the parameters of the if statement
+        if(lftDone == 0 && rghtDone == 0){
             squareDone = 1;
         }
     }
@@ -135,7 +135,6 @@ int getBlackAverage(int port, int laps){
 // color input 0 = yellow
 //color input 1 = blue
 //color input 2 = red
-//the reason I convert these into there actual color names rather than just keeping it the raw number is so the code is easier to read
 int colorSense(int color, int loops) {
 
     camera_open_black();
@@ -146,13 +145,13 @@ int colorSense(int color, int loops) {
 
         camera_update();
         if(color == 0){
-            if(get_object_confidence(yellow,0) > 0.6){ //right now I am just testing to see if I like color confidence better than area
+            if(get_object_confidence(yellow,0) > 0.6){
                 blobRaw = blobRaw + 1;
             } 
         }
 
         if(color == 1){
-            if(get_object_confidence(blue,0) > 0.6){ 
+            if(get_object_confidence(blue,0) > 0.6){
                 blobRaw = blobRaw + 1; 
             }
         }
@@ -169,7 +168,7 @@ int colorSense(int color, int loops) {
 
 
 
-    if(blobRaw > loops * 7/10)){ 
+    if(blobRaw > 70){
         return 0;
     }else{
         return 1;
@@ -250,19 +249,19 @@ void gyroStraight(int dist,int speed){
 
         driveCorrection = theta/5000;
 
-        if(theta < 150 && theta > -150){    
+        if(theta < 150 && theta > -150){ 
             mav(RIGHT,speed);
             mav(LEFT,speed);
         }else if(theta < 150){
             mav(RIGHT,speed + driveCorrection);
             mav(LEFT,speed - driveCorrection);
         }else{
-            mav(RIGHT,speed - driveCorrection);      
+            mav(RIGHT,speed - driveCorrection);
             mav(LEFT,speed + driveCorrection);
         }
 
         msleep(10);
-        theta = theta+(gyro_z() - gyroBias)* 10;           
+        theta = theta+(gyro_z() - gyroBias)*10;
     }
 
 }
@@ -348,8 +347,8 @@ void squareUpWhite(int speed){
 //slows the servo down really slow
 void slowServo(int pos, int speedStall, int port){
     
-   
-    servoPos = get_servo_position(3);
+   enable_servos();
+    servoPos = get_servo_position(port);
     while(servoPos != pos){
         
         if(servoPos < pos){
@@ -363,10 +362,8 @@ void slowServo(int pos, int speedStall, int port){
         
     }
 
-    
+    disable_servos();
     
     
     
 }
-
-
