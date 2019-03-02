@@ -11,30 +11,27 @@ int servoPos;
 int start_state;
 
 
-void create_wake_up()
-{
-    
-    create_connect();
-    enable_servos();
-    
-}
 
-void create_shutdown()
-{
-    
-    create_disconnect();
-    disable_servos();
-    ao();
-    
-}
     
 void create_drive_forward(int speed,int distance)
 {
     set_create_distance(0);
-    while(get_create_distance(0) > -distance)
+    while(get_create_distance() > -distance)
     {
         create_drive_direct(-speed * 24/35,-speed);   
     }  
+}
+
+void create_drive_backwards(int speed, int distance)
+{
+    set_create_distance(0);
+    while(get_create_distance() < distance)
+    {
+        
+        create_drive_direct(speed * 24/35,speed);
+        
+    }
+    
 }
 
 void create_turn_right(int deg,int speed)
@@ -69,7 +66,6 @@ int getAnalogAverage(int port, int laps)
         
      	analogValMass = analogValMass + analog(port);
         analogCounter ++;
-        printf("getting average analog %d value \n",port);
         
     }
     printf("calculation complete");
@@ -88,7 +84,7 @@ void create_line_follow_slow(int target_distance,int port)
            printf("analog = %d \n",analog(port));
            a_speed = 0.0588*analog(port)-5.88;
            b_speed = -0.0588*analog(port)+205.88;
-           create_drive_direct(.25-b_speed,.25-a_speed);
+           create_drive_direct(0.26*-b_speed,0.26*-a_speed);
                        
        }
 }                  
@@ -103,7 +99,7 @@ void create_line_follow_normal(int target_distance,int port)
            printf("analog = %d \n",analog(port));
            a_speed = 0.0588*analog(port)-5.88;
            b_speed = -0.0588*analog(port)+205.88;
-           create_drive_direct(.75-b_speed,.75-a_speed);
+           create_drive_direct(0.75 * -b_speed,0.75 * -a_speed);
                        
        }
 }                  
@@ -122,26 +118,26 @@ void create_line_follow_fast(int target_distance,int port)
        }
 }                  
 
-void create_line_follow_to_building(int port){
+void create_line_follow_to_building(int port,int dist_port){
     
  
-    while(getAnalogAverage(port,100) < 940)
+    while(getAnalogAverage(dist_port,100) < 940)
     {
         
-        create_line_follow_slow(1,0);
+        create_line_follow_slow(1,port);
         
     }
    
     
 }
 
-void create_line_follow_to_void(int port){
+void create_line_follow_to_void(int port, int dist_port){
     
     
-    while(getAnalogAverage(port,100) > 940)
+    while(getAnalogAverage(dist_port,50) > 940)
     {
         
-        create_line_follow_slow(1,0);
+        create_line_follow_slow(1,port);
         
     }
 
@@ -183,7 +179,9 @@ void slow_servo(int pos, int speedStall, int port){
 void wait(int sleep){
    
     create_drive_direct(0,0);
-    msleep(sleep);
+    msleep(sleep/2);
+    motor(0,0);
+    msleep(sleep/2);
     
     
     
@@ -197,11 +195,28 @@ void drive_until_change_digital(int digital_port, int motor_port,int motor_speed
     while(start_state == digital(digital_port))
     {
         
-        motor(motor_port,motor_speed);
+        mav(motor_port,motor_speed);
         
     }
+    wait(200);
+}
+
+void create_wake_up()
+{
+    
+    create_connect();
+    enable_servos();
+    slow_servo(2023,0,3);
+    slow_servo(1580,0,0);
     
 }
 
-
+void create_shutdown()
+{
+    
+    create_disconnect();
+    disable_servos();
+    ao();
+    
+}
     
