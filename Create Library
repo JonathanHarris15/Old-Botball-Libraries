@@ -1,3 +1,6 @@
+
+
+
 //create line follow
 int a_speed;
 int b_speed;
@@ -9,6 +12,7 @@ int analogValAvg;
 int servoPos;
 //drive until change
 int start_state;
+int laps;
 
 
 
@@ -191,11 +195,12 @@ void drive_until_change_digital(int digital_port, int motor_port,int motor_speed
 {
     
     start_state = digital(digital_port);
-    
+    laps = 0;
     while(start_state == digital(digital_port))
     {
         
-        mav(motor_port,motor_speed);
+        mav(motor_port,motor_speed + laps);
+        laps ++;
         
     }
     wait(200);
