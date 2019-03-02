@@ -35,7 +35,7 @@ int main()
     
     wait(100);//pause 
     
-    create_line_follow_slow(12,0);
+    create_line_follow_slow(9,0);
     
     wait(100);
     
@@ -53,7 +53,13 @@ int main()
     
     create_line_follow_to_void(0,1);
     
-    create_line_follow_slow(80,0);
+    wait(100);
+    
+    create_line_follow_slow(90,0);
+    
+    wait(100);
+    
+    meeple_attack();
     
     create_shutdown();
     return 0;
