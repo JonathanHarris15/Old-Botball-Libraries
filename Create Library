@@ -1,0 +1,207 @@
+//create line follow
+int a_speed;
+int b_speed;
+// analog average
+int analogValMass;
+int analogCounter;
+int analogValAvg;
+//slow servo
+int servoPos;
+//drive until change
+int start_state;
+
+
+void create_wake_up()
+{
+    
+    create_connect();
+    enable_servos();
+    
+}
+
+void create_shutdown()
+{
+    
+    create_disconnect();
+    disable_servos();
+    ao();
+    
+}
+    
+void create_drive_forward(int speed,int distance)
+{
+    set_create_distance(0);
+    while(get_create_distance(0) > -distance)
+    {
+        create_drive_direct(-speed * 24/35,-speed);   
+    }  
+}
+
+void create_turn_right(int deg,int speed)
+{
+    
+    set_create_normalized_angle(0);
+    while(get_create_normalized_angle() > -deg)
+    {
+        create_spin_CW(speed);
+        printf("the angle of this turn is = %d \n",get_create_normalized_angle());
+    }
+}
+
+void create_turn_left(int deg,int speed)
+{
+    
+    set_create_normalized_angle(0);
+    while(get_create_normalized_angle() < deg)
+    {
+        create_spin_CCW(speed);
+        printf("the angle of this turn is = %d \n",get_create_normalized_angle());
+    }
+}
+
+int getAnalogAverage(int port, int laps)
+{
+    
+    analogValMass = 0;
+    analogCounter = 0;
+    while(analogCounter < laps)
+    {
+        
+     	analogValMass = analogValMass + analog(port);
+        analogCounter ++;
+        printf("getting average analog %d value \n",port);
+        
+    }
+    printf("calculation complete");
+    analogValAvg = analogValMass / laps;
+    return analogValAvg;
+    
+    
+}
+
+void create_line_follow_slow(int target_distance,int port)
+{
+       set_create_distance(0);
+       while (get_create_distance() > -target_distance)
+       {
+       
+           printf("analog = %d \n",analog(port));
+           a_speed = 0.0588*analog(port)-5.88;
+           b_speed = -0.0588*analog(port)+205.88;
+           create_drive_direct(.25-b_speed,.25-a_speed);
+                       
+       }
+}                  
+    
+    
+void create_line_follow_normal(int target_distance,int port)
+{
+       set_create_distance(0);
+       while (get_create_distance() > -target_distance)
+       {
+       
+           printf("analog = %d \n",analog(port));
+           a_speed = 0.0588*analog(port)-5.88;
+           b_speed = -0.0588*analog(port)+205.88;
+           create_drive_direct(.75-b_speed,.75-a_speed);
+                       
+       }
+}                  
+
+void create_line_follow_fast(int target_distance,int port)
+{
+       set_create_distance(0);
+       while (get_create_distance() > -target_distance)
+       {
+       
+           printf("analog = %d \n",analog(port));
+           a_speed = 0.0588*analog(port)-5.88;
+           b_speed = -0.0588*analog(port)+205.88;
+           create_drive_direct(-b_speed,-a_speed);
+                       
+       }
+}                  
+
+void create_line_follow_to_building(int port){
+    
+ 
+    while(getAnalogAverage(port,100) < 940)
+    {
+        
+        create_line_follow_slow(1,0);
+        
+    }
+   
+    
+}
+
+void create_line_follow_to_void(int port){
+    
+    
+    while(getAnalogAverage(port,100) > 940)
+    {
+        
+        create_line_follow_slow(1,0);
+        
+    }
+
+}
+
+void servo(int port, int pos)
+{
+
+    
+    set_servo_position(port,pos);
+    msleep(1000);
+   
+
+}
+
+void slow_servo(int pos, int speedStall, int port){
+    
+
+    servoPos = get_servo_position(port);
+    while(servoPos != pos){
+        
+        if(servoPos < pos){
+            servoPos = servoPos + 1;
+        }else{
+            servoPos = servoPos - 1;
+        }
+        
+        set_servo_position(port,servoPos);
+        msleep(speedStall);
+        
+    }
+
+  
+    
+    
+    
+}
+
+void wait(int sleep){
+   
+    create_drive_direct(0,0);
+    msleep(sleep);
+    
+    
+    
+}
+
+void drive_until_change_digital(int digital_port, int motor_port,int motor_speed)
+{
+    
+    start_state = digital(digital_port);
+    
+    while(start_state == digital(digital_port))
+    {
+        
+        motor(motor_port,motor_speed);
+        
+    }
+    
+}
+
+
+    
