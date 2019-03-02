@@ -1,0 +1,60 @@
+#include <kipr/botball.h>
+#include </home/root/Documents/KISS/Jonathan H/Meeple Demon 2.0/include/create_level_2_library.h>
+
+int main()
+{
+    create_wake_up();
+   
+    
+   //GET TO THE END OF THE MEEPLE LINE
+    create_drive_backwards(150,280); //move forwards to tht center suply line
+    
+    create_turn_left(95,80); // turn to the left where the electrical lines are located
+    
+    create_drive_forward(150,520); //move towards the end of the supply line
+    
+    create_turn_left(90,80);// face towards the buildings
+    
+    create_drive_forward(150,90);// move the line sensor past the supply line 
+    
+    create_turn_left(90,80);// turn to get ready to line follow
+    
+    create_drive_backwards(50,200);// back up a little bit to straighten out more
+    
+    create_line_follow_normal(200,0);// move past gas valve
+    
+    building_line_up();// line up with the edge of the first building
+    
+    wait(100);//pause 
+    
+    meeple_attack();// grab the meeples
+    
+    wait(100);//pause
+    
+    building_line_up();// line up with the edge of the second building
+    
+    wait(100);//pause 
+    
+    create_line_follow_slow(12,0);
+    
+    wait(100);
+    
+    meeple_attack();// grab the meeples
+    
+    wait(100);//pause
+    
+    building_line_up();// line up with the edge of the third building
+    
+    wait(100);//pause 
+    
+    meeple_attack();// grab the meeples
+    
+    wait(100);//pause
+    
+    create_line_follow_to_void(0,1);
+    
+    create_line_follow_slow(80,0);
+    
+    create_shutdown();
+    return 0;
+}
