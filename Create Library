@@ -125,7 +125,7 @@ void create_line_follow_fast(int target_distance,int port)
 void create_line_follow_to_building(int port,int dist_port){
     
  
-    while(getAnalogAverage(dist_port,100) < 940)
+    while(getAnalogAverage(dist_port,200) < 940)
     {
         
         create_line_follow_slow(1,port);
@@ -199,7 +199,7 @@ void drive_until_change_digital(int digital_port, int motor_port,int motor_speed
     while(start_state == digital(digital_port))
     {
         
-        mav(motor_port,motor_speed + laps);
+        mav(motor_port,motor_speed + (laps/8));
         laps ++;
         
     }
