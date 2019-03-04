@@ -7,22 +7,16 @@ int main()
    
     
    //GET TO THE END OF THE MEEPLE LINE
-    create_drive_backwards(150,280); //move forwards to tht center suply line
+    create_drive_backwards(150,310); //move forwards to tht center suply line
     
-    create_turn_left(95,80); // turn to the left where the electrical lines are located
+    create_turn_right(80,80); // turn to the left where the electrical lines are located
     
-    create_drive_forward(150,520); //move towards the end of the supply line
+    create_drive_backwards(150,700); //move towards the end of the supply line
+
+    create_line_follow_normal(200,0);
     
-    create_turn_left(90,80);// face towards the buildings
     
-    create_drive_forward(150,90);// move the line sensor past the supply line 
-    
-    create_turn_left(90,80);// turn to get ready to line follow
-    
-    create_drive_backwards(50,200);// back up a little bit to straighten out more
-    
-    create_line_follow_normal(200,0);// move past gas valve
-    
+    //ATTACK MEEPLES
     building_line_up();// line up with the edge of the first building
     
     wait(100);//pause 
@@ -55,11 +49,40 @@ int main()
     
     wait(100);
     
-    create_line_follow_slow(90,0);
+    create_line_follow_slow(120,0);
     
     wait(100);
     
     meeple_attack();
+    
+    wait(100);
+    
+    //SCENARIO 1
+    servo(3,2023);
+    
+    wait(55);
+    
+    create_drive_forward(75,50);
+    
+    wait(50);
+    
+    create_turn_left(45,50);
+    
+    wait(50);
+    
+    servo(3,167);
+    
+    wait(50);
+    
+    servo(0,765);
+    
+    wait(50);
+    
+    create_turn_left(45,50);
+    
+   
+    
+    
     
     create_shutdown();
     return 0;
