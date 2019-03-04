@@ -3,12 +3,19 @@
 
 void building_line_up()
 {
+    wait(50);
+    
+    servo(3,1530);
+    
+    wait(50);
     
     create_line_follow_to_void(0,1);//check to make sure we are not in front of a building
     
     wait(100);// pause for a second
     
     servo(3,2023);//keep meeples
+    
+    create_line_follow_to_building(0,1);//line up with buldings
     
     create_line_follow_to_building(0,1);//line up with buldings
     
@@ -30,5 +37,6 @@ void meeple_attack()
     wait(100);
     mav(0,-450);
     msleep(7000);
+    servo(3,2023);
           
 }
