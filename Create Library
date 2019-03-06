@@ -1,6 +1,6 @@
-
-
-
+#define yellow 0
+#define red 1
+#define blue 2
 //create line follow
 int a_speed;
 int b_speed;
@@ -13,7 +13,11 @@ int servoPos;
 //drive until change
 int start_state;
 int laps;
-
+//camera code
+int blobArea;
+int blobAvg;
+int blobCount = 0;
+int blobRaw = 0;
 
 
     
@@ -125,7 +129,7 @@ void create_line_follow_fast(int target_distance,int port)
 void create_line_follow_to_building(int port,int dist_port){
     
  
-    while(getAnalogAverage(dist_port,200) < 940)
+    while(getAnalogAverage(dist_port,200) < 960)
     {
         
         create_line_follow_slow(1,port);
@@ -213,6 +217,7 @@ void create_wake_up()
     enable_servos();
     slow_servo(2023,0,3);
     slow_servo(1580,0,0);
+    servo(1,1383);
     
 }
 
@@ -224,4 +229,50 @@ void create_shutdown()
     ao();
     
 }
+
+int colorSense(int color, int loops) {
+
+    camera_open_black();
+    blobCount = 0;
+    blobRaw = 0;
+    
+    while(blobCount < loops){
+
+        camera_update();
+        if(color == 0){
+            if(get_object_confidence(yellow,0) > 0.4){
+                blobRaw = blobRaw + 1;
+            } 
+        }
+
+        if(color == 1){
+            if(get_object_confidence(blue,0) > 0.4){
+                blobRaw = blobRaw + 1; 
+            }
+        }
+
+        if(color == 2){
+            if(get_object_confidence(red,0) > 0.4){
+                blobRaw = blobRaw + 1; 
+            }
+
+        }
+        blobCount = blobCount + 1;
+
+    }
+
+
+
+    if(blobRaw > 70){
+        return 0;
+    }else{
+        return 1;
+    }
+
+}
+
+
+
+
+
     
