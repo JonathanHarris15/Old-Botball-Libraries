@@ -15,11 +15,17 @@ void building_line_up()
     
     servo(3,2023);//keep meeples
     
-    create_line_follow_to_building(0,1);//line up with buldings
+    wait(50);
     
     create_line_follow_to_building(0,1);//line up with buldings
     
-    create_drive_forward(50,15);
+    wait(50);
+    
+    create_line_follow_to_building(0,1);//line up with buldings
+    
+    wait(50);
+    
+    create_drive_forward(50,10);
     
     wait(100);
 }
@@ -27,16 +33,44 @@ void building_line_up()
 void meeple_attack()
 {
     
-    slow_servo(890,2,3);
-    slow_servo(690,0,0);
+    slow_servo(840,2,3);
+    
+    slow_servo(730,0,0);
+    
     wait(100);
+    
     drive_until_change_digital(9,0,390);
+    
     wait(100);
-    slow_servo(1500,1,3);
+    
+    slow_servo(1700,1,3);
+    
     slow_servo(1369,1,0);
+    
     wait(100);
+    
     mav(0,-450);
+    
     msleep(7000);
+    
     servo(3,2023);
+    
+    wait(50);
+    
+    slow_servo(840,2,3);
+    
+    wait(50);
+    
+    mav(0,450);
+    
+    msleep(2000);
+    
+    wait(10);
+    
+    servo(3,2023);
+    
+    mav(0,-450);
+    
+    msleep(2500);
           
 }
