@@ -1,6 +1,9 @@
 #define yellow 0
 #define red 1
 #define blue 2
+
+//drive code
+float wheel_multiplier;
 //create line follow
 int a_speed;
 int b_speed;
@@ -20,13 +23,23 @@ int blobCount = 0;
 int blobRaw = 0;
 
 
+void wait(int sleep){
+   
+    create_drive_direct(0,0);
+    msleep(sleep/2);
+    motor(0,0);
+    msleep(sleep/2);
     
+    
+    
+}
+
 void create_drive_forward(int speed,int distance)
 {
     set_create_distance(0);
     while(get_create_distance() > -distance)
     {
-        create_drive_direct(-speed * 24/35,-speed);   
+        create_drive_direct(-speed,-speed);   
     }  
 }
 
@@ -36,7 +49,7 @@ void create_drive_backwards(int speed, int distance)
     while(get_create_distance() < distance)
     {
         
-        create_drive_direct(speed * 24/35,speed);
+        create_drive_direct(speed,speed);
         
     }
     
@@ -92,7 +105,7 @@ void create_line_follow_slow(int target_distance,int port)
            printf("analog = %d \n",analog(port));
            a_speed = 0.0588*analog(port)-5.88;
            b_speed = -0.0588*analog(port)+205.88;
-           create_drive_direct(0.26*-b_speed,0.26*-a_speed);
+           create_drive_direct(0.55*-b_speed,0.55*-a_speed);
                        
        }
 }                  
@@ -184,16 +197,7 @@ void slow_servo(int pos, int speedStall, int port){
     
 }
 
-void wait(int sleep){
-   
-    create_drive_direct(0,0);
-    msleep(sleep/2);
-    motor(0,0);
-    msleep(sleep/2);
-    
-    
-    
-}
+
 
 void drive_until_change_digital(int digital_port, int motor_port,int motor_speed)
 {
@@ -263,16 +267,12 @@ int colorSense(int color, int loops) {
 
 
 
-    if(blobRaw > 70){
+    if(blobRaw > loops * 65/100){
         return 0;
     }else{
         return 1;
     }
 
 }
-
-
-
-
 
     
