@@ -3,74 +3,112 @@
 
 void building_line_up()
 {
-    wait(50);
+    wait(3);
     
-    servo(3,1530);
+    servo(3,1450);
     
-    wait(50);
+    wait(3);
     
     create_line_follow_to_void(0,1);//check to make sure we are not in front of a building
     
-    wait(100);// pause for a second
+    wait(3);// pause for a second
     
     servo(3,2023);//keep meeples
     
-    wait(50);
+    wait(3);
+    
+    slow_servo(1450,0,3);
+    
+    wait(3);
     
     create_line_follow_to_building(0,1);//line up with buldings
     
-    wait(50);
+    wait(3);
     
     create_line_follow_to_building(0,1);//line up with buldings
     
-    wait(50);
+    wait(3);
     
-    create_drive_forward(50,10);
+    create_drive_forward(50,7);
     
-    wait(100);
+    wait(3);
 }
 
 void meeple_attack()
 {
     
-    slow_servo(840,2,3);
+    slow_servo(840,1,3);
     
     slow_servo(730,0,0);
     
-    wait(100);
+    wait(3);
     
     drive_until_change_digital(9,0,390);
     
     wait(100);
     
-    slow_servo(1700,1,3);
+    slow_servo(1650,0,3);
     
-    slow_servo(1369,1,0);
+    slow_servo(1369,0,0);
     
-    wait(100);
+    wait(3);
     
-    mav(0,-450);
+    mav(0,-550);
     
-    msleep(7000);
+    msleep(5650);
     
     servo(3,2023);
     
+    wait(3);
+   
+}
+void pack_in(){
+    
+    
+    
+    slow_servo(840,0,3);
+    
     wait(50);
     
-    slow_servo(840,2,3);
+    mav(0,600);
     
-    wait(50);
-    
-    mav(0,450);
-    
-    msleep(2000);
+    msleep(1000);
     
     wait(10);
     
     servo(3,2023);
     
-    mav(0,-450);
+    mav(0,-700);
     
-    msleep(2500);
+    msleep(1000);
           
+}
+
+void building_line_up_first()
+{
+    wait(3);
+    
+    servo(3,1450);
+    
+    wait(3);
+    
+    create_line_follow_to_void(0,1);//check to make sure we are not in front of a building
+    
+    wait(3);// pause for a second
+    
+    servo(3,2023);//keep meeples
+    
+    wait(3);
+    
+    create_line_follow_to_building(0,1);//line up with buldings
+    
+    wait(3);
+    
+    create_line_follow_to_building(0,1);//line up with buldings
+    
+    wait(3);
+    
+    create_drive_forward(50,10);
+    
+    wait(3);
 }
