@@ -2,24 +2,23 @@
 #include </home/root/Documents/KISS/Jonathan H/Meeple Demon 2.0/include/create_level_2_library.h>
 
 
-int p = 15;
+int p = 3;
 int main()
 {
     create_wake_up();
-   
-    
+  
    //GET TO THE END OF THE MEEPLE LINE
-    create_drive_backwards(150,335); //move forwards to tht center suply line
+    create_drive_backwards(170,375); //move forwards to tht center suply line
     
-    create_turn_right(86,80); // turn to the left where the electrical lines are located
+    create_turn_right(110,70); // turn to the left where the electrical lines are located
     
-    create_drive_backwards(150,730); //move towards the end of the supply line
+    create_drive_backwards(175,730); //move towards the end of the supply line
 
     create_line_follow_normal(240,0);
     
     
     //ATTACK MEEPLES
-    building_line_up();// line up with the edge of the first building
+    building_line_up_first();// line up with the edge of the first building
     
     wait(p);//pause 
     
@@ -31,7 +30,11 @@ int main()
     
     wait(p);
     
-    create_line_follow_slow(12,0);
+    servo(3,1450);
+    
+    wait(p);
+     
+    create_line_follow_slow(17,0);
     
     wait(p);
     
@@ -41,13 +44,26 @@ int main()
     
     building_line_up();// line up with the edge of the third building
     
-    wait(p);//pause 
+    wait(p);
+    
+    servo(3,1450);
+    
+    wait(p);
+    slow_servo(312,0,1);
+    
+    wait(5);
+    
+    slow_servo(1383,0,1);
+    
+    create_line_follow_slow(8,0);
+    
+    wait(p);
     
     meeple_attack();// grab the meeples
     
     wait(p);//pause
 
-    create_drive_forward(50,325);
+    create_drive_forward(75,395);
     
     wait(p);
     
@@ -55,30 +71,58 @@ int main()
     
     wait(p);
     
-    //SCENARIO 1
-    servo(3,2023);
+    pack_in();
     
     wait(p);
     
-    create_drive_forward(75,50);
+    if(colorSense(0,70) == 1){
     
-    wait(p);
-    
-    create_turn_left(45,20);
-    
-    wait(p);
-    
-    servo(3,167);
-    
-    wait(p);
-    
-    servo(0,765);
-    
-    wait(p);
-    
-    create_turn_left(45,20);
-    
-   
+        //SCENARIO 1
+        
+        servo(3,2023);
+
+        wait(p);
+
+        create_drive_forward(75,95);
+
+        wait(p);
+
+        create_turn_left(45,20);
+
+        wait(p);
+
+        slow_servo(840,1,3);
+
+        wait(p);
+
+        servo(0,765);
+
+        wait(p);
+
+        create_turn_left(70,40);
+        
+    }else{
+        
+        //SCENARIO 2
+        servo(3,2023);
+
+        wait(55);
+
+        create_drive_forward(75,80);
+
+        wait(50);
+
+        create_turn_right(23,50);
+
+        wait(50);
+
+        create_drive_forward(50,190);
+
+        wait(50);
+
+        create_turn_left(75,50);
+        
+    }
     
     
     
