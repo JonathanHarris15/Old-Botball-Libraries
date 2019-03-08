@@ -5,7 +5,7 @@ void building_line_up()
 {
     wait(3);
     
-    servo(3,1450);
+    slow_servo(1450,1,3); //open the claw slightly so we can keep somw of the meeples that slip out
     
     wait(3);
     
@@ -17,7 +17,7 @@ void building_line_up()
     
     wait(3);
     
-    slow_servo(1450,0,3);
+    slow_servo(1450,0,3);// open up again so we can keep more meeples
     
     wait(3);
     
@@ -29,31 +29,33 @@ void building_line_up()
     
     wait(3);
     
-    create_drive_forward(50,7);
+    create_drive_forward(50,40);// push meeples forward 
     
     wait(3);
+    
+    create_drive_backwards(50,20);// pull back to right spot in between the two buildings
 }
 
 void meeple_attack()
 {
     
-    slow_servo(840,1,3);
+    slow_servo(840,1,3);//open the bottom claw
     
-    slow_servo(730,0,0);
+    slow_servo(730,0,0);//open the top claw
     
     wait(3);
     
-    drive_until_change_digital(9,0,390);
+    drive_until_change_digital(9,0,390);//move the arm forward
     
     wait(100);
     
-    slow_servo(1650,0,3);
+    slow_servo(1650,0,3);//close
     
-    slow_servo(1369,0,0);
+    slow_servo(1369,0,0);//close
     
     wait(3);
     
-    mav(0,-550);
+    mav(0,-550);//pull back
     
     msleep(5650);
     
@@ -66,7 +68,7 @@ void pack_in(){
     
     
     
-    slow_servo(840,0,3);
+    slow_servo(840,0,3);// open claw
     
     wait(50);
     
@@ -108,7 +110,7 @@ void building_line_up_first()
     
     wait(3);
     
-    create_drive_forward(50,10);
+    create_drive_forward(50,7);
     
     wait(3);
 }
