@@ -87,7 +87,7 @@ int main()
 
         wait(p);
 
-        create_turn_left(45,20);
+        create_turn_left(60,20);
 
         wait(p);
 
@@ -99,7 +99,7 @@ int main()
 
         wait(p);
 
-        create_turn_left(70,40);
+        create_turn_left(55,40);
         
     }else{
         
