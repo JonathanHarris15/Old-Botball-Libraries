@@ -1,369 +1,172 @@
-
-
-#define RIGHT 0 
-#define LEFT 3
-#define ninetyDeg 460000
-#define oneEighty 930000
-#define fortyFive 232500
-#define ticksPerCm 12
-#define yellow 0
-#define red 1
-#define blue 2
-
-//line following 
-int rSpeed;
-int lSpeed;
-//square up
-int lftDone = 0;
-int rghtDone = 0;
-int squareDone = 0;
-//cameracode
-int blobArea;
-int blobAvg;
-int blobCount = 0;
-int blobRaw = 0;
-//callibrate gyros
-int gyroCounter = 0;
-int gyroMass = 0;
-int gyroAvg;
-int gyroBias;
-//turning 
-float theta;
-float targetTheta;
-//gyroStraight
-int target;
-int driveCorrection;
-//center on color 
-int centerCorrection;
-//Slow Servo 
-int servoPos;
-int actServ;
-//Black Average
-int blackValMass;
-int blackCounter;
-int blackValAvg;
-
-
-/* this line follow code is made in a way in wich it sees all the grey values between as well so if it sees a 
-dark grey it will turn harder than if it saw a light grey*/
-
-void lineFollow(int dist,int port){
-
+int bias;
+void drive (int speed, int distance){
+    
+    float theta = 0;
+    //float start_time = 0;
+    //float end_time = 0;
+    float error = 0;
+    float target = 0;
     cmpc(0);
-    cmpc(3);
-
-    while(gmpc(RIGHT) + gmpc(LEFT)/2  < dist){
-
-
-
-        rSpeed = -1* analog(port)/2 + 4000; // I used a graph to get how hard it would turn and these are the slope functions
-        lSpeed = analog(port)/2 - 200;
-
-        mav(0,lSpeed - 500);
-        mav(3,rSpeed - 500);
-
-
-    }
-}
-
-
-// uses two sensors to line up on a black line 
-//Would be preferable if the sensors were perfectly lined up with the wheel
-void squareUp(int speed){
-
-    squareDone = 0;
-    while(squareDone == 0){
-        if(analog(2) < 3800){
-            mav(LEFT,speed);
-            rghtDone = 1;
-        }else{
-            mav(LEFT,0);
-            rghtDone = 0;
-        }
-        if(analog(3) < 3800){
-            mav(RIGHT,speed);
-            lftDone = 1;
-        }else{
-            mav(RIGHT,0);
-            lftDone = 0;
-        }
-        if(lftDone == 0 && rghtDone == 0){
-            squareDone = 1;
-        }
-    }
-
-}
-
-//checks to see if a certain port senses black
-int analogIsBlack(int port){
-
-    if(analog(port) > 2500){
-        return(1);
-    }else{
-        return(0);
-    }
-}
-
-//Gets the average value of the black line
-//This is usefull if you are at a difirent game table than usual
-int getBlackAverage(int port, int laps){
-    
-    blackValMass = 0;
-    blackCounter = 0;
-    while(blackCounter < laps){
+    cmpc(1);
+    while((abs(gmpc(0)) + abs(gmpc(1)))/2 < distance * 77){
+     
+        //start_time = seconds();
         
-     	blackValMass = blackValMass + analog(port);
-        blackCounter ++;
-        printf("getting average analog %d value",port);
+        mav(0,speed + error * 0.1);
+        mav(1,speed - error * 0.1);
+        msleep(15);
+        
+        //end_time = seconds() - start_time;
+        theta = theta + (gyro_z() - bias);
+        error = (target - (theta));
+        
         
     }
-    printf("calculation complete");
-    blackValAvg = blackValMass / laps;
-    return blackValAvg;
-    
+    mav(0,0);
+    mav(1,0);
+    msleep(20);
     
 }
 
-
-
-
-
-
-
-
-//sees if the color you input is being seen with a high enough confidence
-// color input 0 = yellow
-//color input 1 = blue
-//color input 2 = red
-int colorSense(int color, int loops) {
-
-    camera_open_black();
-    blobCount = 0;
-    blobRaw = 0;
+void calculate_bias(int loops){
+    int i;
+    int bias_mass = 0;
+    mav(0,0);
+    mav(1,0);
+    msleep(100);
+    for(i = 0; i < loops; i++){
+        bias_mass = bias_mass + gyro_z();
+        mav(0,0);
+        mav(1,0);
+        msleep(5);
+    }
+    bias = bias_mass / loops;
+}
     
-    while(blobCount < loops){
 
-        camera_update();
-        if(color == 0){
-            if(get_object_confidence(yellow,0) > 0.6){
-                blobRaw = blobRaw + 1;
-            } 
-        }
-
-        if(color == 1){
-            if(get_object_confidence(blue,0) > 0.6){
-                blobRaw = blobRaw + 1; 
-            }
-        }
-
-        if(color == 2){
-            if(get_object_confidence(red,0) > 0.6){
-                blobRaw = blobRaw + 1; 
-            }
-
-        }
-        blobCount = blobCount + 1;
-
-    }
-
-
-
-    if(blobRaw > 70){
-        return 0;
-    }else{
-        return 1;
-    }
-
-}
-
-
-
-
-
-
-// callibraes the bias of the gyros for all gyro commands 
-//at the moment only run this once at the begginig of the code. will fix later
-void callibrateGyros(){
-    gyroMass = 0;
-    gyroBias = 0;
-    gyroAvg = 0;
-    while(gyroCounter < 1000){
-
-        gyroMass = gyroMass + gyro_z();
-        gyroCounter++;
-        msleep(1);
-    }
-
-    gyroAvg = (gyroMass / 1000);
-    printf("average Z value: %d \n", gyroAvg);
-    gyroBias = gyroAvg;
-
-}
-
-//uses the gyroscopes to make turns
-/* This code uses the internal gyroscopes of the wallaby and gets the raw value.
-it then adds this raw value to a variable I call theta (its not really theta) this way it will turn until all 
-the values add up to the specified degree numbers at the top on lines 5 through 7
-*/ 
-void gyroTurn(int R,int L,int turnDeg){
-    theta = 0;
-    callibrateGyros();
-    if(turnDeg == 90){
-        targetTheta = ninetyDeg;
-    }
-    if(turnDeg == 45){
-        targetTheta = fortyFive;
-    }
-    if(turnDeg == 180){
-        targetTheta = oneEighty;
-    }
-
-    while(theta < targetTheta){
+void right(int speed, int target){
+    
+    float theta = 0;
+    //float start_time = 0;
+    //float end_time = 0;
+    while(theta > -target){
+        msleep(15);
+     
+        //start_time = seconds();
+        
+        mav(0,-speed);
+        mav(1,speed);
         msleep(10);
-        theta = theta + (abs(gyro_z() - gyroBias) * 10);
-        mav(RIGHT,R);
-        mav(LEFT,L);
-        printf("why \n");
+        
+        //end_time = seconds() - start_time;
+        theta = theta + ((gyro_z() - bias) * 0.03);
+        printf("theta %f\n",theta);
+        
     }
-
-    mav(3,0);
-    mav(0,0);  
-    msleep(1000);
-
+    mav(0,0); 
+    mav(1,0);
+    msleep(20);
+    
 }
 
-/*uses the gyroscopes to drive straight 
-look at the explanation of the gyroTurn command to see how the gyros work.
-This specific version sees if the "theta value" is within a certan threshold, if not it will turn 
-back to the center to be back in this threshold.
-*/
-void gyroStraight(int dist,int speed){
+void left(int speed, int target){
+    
+    float theta = 0;
+    //float start_time = 0;
+    //float end_time = 0;
+    while(theta < target){
+        msleep(15);
+     
+        //start_time = seconds();
+        
+        mav(0,speed);
+        mav(1,-speed);
+        msleep(10);
+        
+        //end_time = seconds() - start_time;
+        theta = theta + ((gyro_z() - bias)  * 0.03);
+        printf("theta %f\n",theta);
+        
+    }
+    mav(0,0);
+    mav(1,0);
+    msleep(20);
+    
+}
+//servo function by Jacob of Noble High School (written on August 8,2019)
+void servo(int port, int position, int speed){   
+    
+    int current = get_servo_position(port);
 
+    if(position > 2047){
+
+        position = 2047;
+
+    } 
+    if(position < 0){
+
+        position = 0;
+
+    }   
+
+    while(current <= position-speed || current >= position+speed){ 
+
+        if(current < position){
+
+            current += speed;
+           
+        }
+        if(current > position){
+
+            current -= speed;
+
+        }
+        set_servo_position(port, current);
+        msleep(2);
+    }
+
+    set_servo_position(port,position);
+    
+} 
+void line_follow(int port, int speed , int distance){
+    
+    int grey_value=2000;
+    
+    
+    int right_wheel = 0;
+    int left_wheel = 1;
+    int speed_change;
     cmpc(0);
-    cmpc(3);
+    int error = 0;
+	while(gmpc(0) < distance * 77){
+ 		error = grey_value-analog(port);
+    	speed_change= error*0.2;
+ 		mav(right_wheel ,speed - speed_change);
+ 		mav(left_wheel ,speed + speed_change);   
+	}
+    mav(0, 0);
+    mav(1, 0);
+    msleep(100);
+} 
 
-
-    callibrateGyros();
-
-    while(gmpc(RIGHT) < dist){
-
-        driveCorrection = theta/5000;
-
-        if(theta < 150 && theta > -150){ 
-            mav(RIGHT,speed);
-            mav(LEFT,speed);
-        }else if(theta < 150){
-            mav(RIGHT,speed + driveCorrection);
-            mav(LEFT,speed - driveCorrection);
-        }else{
-            mav(RIGHT,speed - driveCorrection);
-            mav(LEFT,speed + driveCorrection);
-        }
-
-        msleep(10);
-        theta = theta+(gyro_z() - gyroBias)*10;
-    }
-
-}
-
-//simple servo command
-void servo(int port, int pos){
-
-    enable_servos();
-    set_servo_position(port,pos);
-    msleep(1000);
-    disable_servos();
-
-}
-
-
-void centerOnColor(int channel){
-
-    camera_open_black();
-
-    centerCorrection = 200;
-    while(get_object_center_x(channel,0) != 80){ 
-
-        camera_update();
-
-        if(get_object_center_x(channel,0) < 80){
-            mav(RIGHT,centerCorrection);
-            mav(LEFT,-centerCorrection);
-        }
-        if(get_object_center_x(channel,0) > 80){
-            mav(RIGHT,-centerCorrection);
-            mav(LEFT, centerCorrection);
-        }
-    }
-
-    camera_close();
-}
-
-/*
-this function keeps the bot going at a steady pace until you line following sensor sees 
-black. It will then slow down the amount you specify and square up.
-
-WARNING: FOR THIS CODE TO WORK YOUR SQUARE UP SENSORS MUST BE BEHIND YOUR LINE FOLLOING SENSOR
-*/
-void driveIntoBlack(int initSpeed, int slowDown,int line){
+void line_follow2(int port, int speed , int distance){
     
-    while(analogIsBlack(line) == 0){
-        mav(RIGHT,initSpeed);
-        mav(LEFT,initSpeed);
-    }
-    if(analogIsBlack(line) == 1){
-        squareUp(initSpeed - slowDown);
-    }
-}
-
-//use this code if you are already on a black line and want to check again to make sure you are squared up
-//NOTE!!! this code can not be run directly after a squre up black command because there is a possiblity it can still sense black
-void squareUpWhite(int speed){
-
-    squareDone = 0;
-    while(squareDone == 0){
-        if(analog(2) > 3600){
-            mav(LEFT,speed);
-            rghtDone = 1;
-        }else{
-            mav(LEFT,0);
-            rghtDone = 0;
-        }
-        if(analog(3) > 3600){
-            mav(RIGHT,speed);
-            lftDone = 1;
-        }else{
-            mav(RIGHT,0);
-            lftDone = 0;
-        }
-        if(lftDone == 0 && rghtDone == 0){
-            squareDone = 1;
-        }
-    }
-
-}
-
-
-//slows the servo down really slow
-void slowServo(int pos, int speedStall, int port){
-    
-   enable_servos();
-    servoPos = get_servo_position(port);
-    while(servoPos != pos){
-        
-        if(servoPos < pos){
-            servoPos = servoPos + 1;
-        }else{
-            servoPos = servoPos - 1;
-        }
-        
-        set_servo_position(port,servoPos);
-        msleep(speedStall);
-        
-    }
-
-    disable_servos();
+    int grey_value=3100;
     
     
-    
-}
+    int right_wheel = 0;
+    int left_wheel = 1;
+    int speed_change;
+    cmpc(0);
+    int error = 0;
+	while(gmpc(0) > -distance * 77){
+ 		error = grey_value-analog(port);
+    	speed_change= error*0.8;
+ 		mav(right_wheel ,speed + speed_change);
+ 		mav(left_wheel ,speed - speed_change);   
+	}
+    mav(0, 0);
+    mav(1, 0);
+    msleep(100);
+} 
+
