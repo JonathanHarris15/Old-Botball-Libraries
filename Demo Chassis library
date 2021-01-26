@@ -1,0 +1,297 @@
+/*   
+WARNING: THIS CODE HAS SOME PROBLEMS WITH EXTREME PRECISION, THE LOCOMOTION COMMANDS ARE GOOD BUT YOU MAY EXPERIENCE PROBLEMS WITH THE SQUARE UP FUNCTIONS IN
+THIS VERSON. THE PURPOSE OF THIS CODE IS FOR DOCUMENTATION REASONS ONLY. THE MAIN BRANCH OF THE DEMO LIBRARY IS THE MOST STABLE
+*/
+
+
+
+#define RIGHT 0
+#define LEFT 1
+
+int grey_value;
+
+void lock(int wait){
+ 
+    mav(RIGHT,0);
+    mav(LEFT,0);
+    msleep(wait);
+    
+}
+int wait_for_button_input(){
+
+    int button_pressed = 0;
+    int button_right = 0;
+    int button_left = 0;
+    while(button_pressed == 0){
+        if(right_button() == 1){
+
+            button_pressed = 1;
+            button_right = 1;
+
+        }
+        if(left_button() == 1){
+            button_pressed = 1;
+            button_left = 1;
+        }
+    }
+    msleep(750);
+    if(button_right == 1){
+        return 0;
+    }else if(button_left == 1){
+        return 1;
+    }else{
+        return 3;
+    }
+}
+
+void callibrate_blacknwhite(int port){
+
+    printf("Please place the robots light sensor on a black line and\n press one of the buttons on the wallaby.\n");
+    wait_for_button_input();
+    int black_value = analog(port);
+    printf("your value was: %d \n if you would like to change the value then please stop the program and restart.\n",black_value);
+    printf("Otherwise please press either of the buttons again while\n the robot's light sensor is on a white suface of the table.\n");
+    wait_for_button_input();
+    int white_value = analog(port);
+    console_clear();
+    printf("your white value was: %d \n if you would like to change the value then please stop the program and restart.\n",white_value);
+    msleep(5000);
+    console_clear();
+    grey_value = ((white_value + black_value)/2);
+    printf("your middle value was: %d \n you are now ready to go! \n",grey_value); 
+    msleep(1000);
+    printf("press the button again to continue.\n");
+    wait_for_button_input();
+    console_clear();
+
+}
+
+int servo_position = 0;
+void servo(int port, int position, int speed){
+
+    enable_servos();
+    servo_position = get_servo_position(port);
+
+    while(get_servo_position(port) != position) {
+        msleep(speed);
+        set_servo_position(port,servo_position);
+
+        if(get_servo_position(port) < position) {
+
+            servo_position = servo_position + 1; 
+
+        }
+
+        if(get_servo_position(port) > position) {  
+
+            servo_position = servo_position - 1;
+        }   
+    }   
+    lock(100);
+    disable_servos();
+}  
+
+
+int bias;
+
+void get_analog_avarage(int loops, int port){
+    int mass = 0;
+    int cntr = 0;
+    while(cntr < loops){
+
+        mass =  mass + analog(port);
+        cntr = cntr + 1;
+        msleep(200);   
+    }
+    printf("your value is = %d", mass / loops);
+}
+
+
+void square_up(float speed, int range){
+
+    int rdone = 0;
+    int ldone = 0;
+    float rrange;
+    float lrange;
+    float rspeed;
+    float lspeed;
+    float multiplier = speed;    
+    while( rdone==0||ldone==0){
+
+        rrange= grey_value - analog(1);
+        lrange= grey_value - analog(2);
+        rspeed= rrange* multiplier;
+        lspeed= lrange* multiplier;
+
+        if(abs(rrange)<range){
+            rdone=1;
+        }
+        if(abs(lrange)<range){
+            ldone=2;
+        }
+
+        mav(0,rspeed);
+        mav(1,lspeed);
+
+    }
+
+
+}
+
+void rigid_square_up(int speed, int modifier){
+
+    int squareDone = 0;
+    int lftDone;
+    int rghtDone;
+
+    while(squareDone == 0){
+
+        if(analog(2) < grey_value){
+            mav(LEFT,speed);
+            lftDone = 1;
+        }else{
+            mav(LEFT,0);
+            lftDone = 0;
+        }
+        if(analog(1) < grey_value){
+            mav(RIGHT,speed);
+            rghtDone = 1;
+        }else{
+            mav(RIGHT,0);
+            rghtDone = 0;
+        }
+        if(lftDone == 0 && rghtDone == 0){
+            squareDone = 1;
+        }
+    }
+
+}
+
+//smooth line follow
+
+void line_follow(int distance , int speed){
+
+    int grey_value=2200;
+
+
+    int right_wheel = 0;
+    int left_wheel = 1;
+    int speed_change;
+    cmpc(0);
+    while(gmpc(0) < distance){
+        int error= grey_value-analog(0);
+        speed_change= error*0.2;
+        mav(right_wheel ,speed + speed_change);
+        mav(left_wheel ,speed - speed_change);   
+    }
+} 
+
+//gyro code
+void callibrate_gyros(int loops){
+
+    int gyroMass = 0;
+    bias = 0;
+    int gyroAvg = 0;
+    int gyroCounter = 0;
+
+    lock(50);
+    
+    while(gyroCounter < loops){
+
+        gyroMass = gyroMass + gyro_z();
+        motor(0,0);
+        motor(1,0);
+        gyroCounter++;
+        msleep(1);
+    }
+
+    gyroAvg = (gyroMass / loops);
+    printf("average Z value: %d \n", gyroAvg);
+    bias = gyroAvg;
+
+}
+
+void drive(float distance, int speed){
+
+    float first_time = seconds();
+    float time = 0;
+    float start_time = 0;
+    float loop_time = 0;
+    float speed_change = 0;
+    float error = 0;
+    callibrate_gyros(600);
+    cmpc(RIGHT);
+    cmpc(LEFT);
+	lock(10);
+    while(abs((gmpc(RIGHT) + gmpc(LEFT))/2) < distance){
+
+        start_time = time;
+        
+        if(gmpc(0) < 200){
+            
+            loop_time = 0.012;
+        }
+        error = error + ((gyro_z() - bias) * loop_time);
+        printf("%f \n", loop_time);
+        msleep(5);
+        speed_change = error * 20;
+        mav(0,speed-speed_change);
+        mav(1, speed+speed_change);
+
+        time = seconds() - first_time;
+        loop_time = time - start_time;
+
+    } 
+    lock(100);
+}
+
+// 90 degree turn = 583
+void left(int degrees, int speed, int forward_speed){
+
+    float theta = 0;
+    float first_time = seconds();
+    float time;
+    float start_time;
+    float loop_time;
+    callibrate_gyros(600);
+    while(theta < degrees){
+
+        start_time = time;
+
+        theta = theta + ((gyro_z() - bias) * loop_time); 
+        printf("%f\n",theta);
+        msleep(20);
+        mav(1,-speed + forward_speed);
+        mav(0,speed + forward_speed);
+
+        time = seconds() - first_time;
+        loop_time = time - start_time;
+    }
+    lock(100);   
+
+}
+
+// 90 degree turn = 583
+void right(int degrees, int speed, int forward_speed){
+
+    float theta = 0;
+    float first_time = seconds();
+    float time;
+    float start_time;
+    float loop_time;
+    callibrate_gyros(600);
+    while(-theta < degrees){
+
+        start_time = time;
+
+        theta = theta + ((gyro_z() - bias) * loop_time); 
+        printf("%f\n",theta);
+        msleep(20);
+        mav(0,-speed + forward_speed);
+        mav(1,speed + forward_speed);
+
+        time = seconds() - first_time;
+        loop_time = time - start_time;
+    }
+    lock(100);
+}
