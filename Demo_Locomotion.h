@@ -67,57 +67,53 @@ Although the turn is fairly accurate it is not 100% so you will need to check yo
 
 void right(int speed, int target){
     
-    float theta = 0;
-    while(theta > -target){
-        msleep(15);
-        mav(right_wheel,-speed);
-        mav(left_wheel,speed);
-        msleep(10);
-        
-        theta = theta + ((gyro_z() - bias) * 0.03);
-        
-    }
-    mav(right_wheel,0); 
-    mav(left_wheel,0);
-    msleep(20);
-    
+	float theta = 0;
+    	while(theta > -target){
+	
+        	mav(right_wheel,-speed);
+        	mav(left_wheel,speed);
+        	msleep(10);
+        	theta = theta + ((gyro_z() - bias) * 0.03);
+    	}
+    	mav(right_wheel,0); 
+    	mav(left_wheel,0);
+   	msleep(20);
 }
 
 void left(int speed, int target){
+     
+	float theta = 0;
     
-    float theta = 0;
-    
-    while(theta < target){
-        msleep(15);
+    	while(theta < target){
         
-        mav(right_wheel,speed);
-        mav(left_wheel,-speed);
-        msleep(10);
+        	mav(right_wheel,speed);
+        	mav(left_wheel,-speed);
+        	msleep(10);
         
-        theta = theta + ((gyro_z() - bias)  * 0.03);
+        	theta = theta + ((gyro_z() - bias)  * 0.03);
         
-    }
-    mav(right_wheel,0);
-    mav(left_wheel,0);
-    msleep(20);
-    
+    	}
+    	mav(right_wheel,0);
+    	mav(left_wheel,0);
+    	msleep(20);
 }
+
 
 //A smooth line follow made for use with a regular tophat sensor
 //DISTANCE IS MEASURED IN CM
 void line_follow(int port, int speed , int distance){
-    
-    int grey_value = 2000; //This grey value needs to be the average value that is directly between the read white value and the read black value of the tophat sensor
-    int speed_change;
-    cmpc(right_wheel);
-    int error = 0;
-	  while(gmpc(right_wheel) < distance * 77){
- 		  error = grey_value-analog(port);
-    	speed_change= error*0.2;
+	
+	int grey_value = 2000; //This grey value needs to be the average value that is directly between the read white value and the read black value of the tophat sensor
+	int speed_change;
+	cmpc(right_wheel);
+	int error = 0;  
+	while(gmpc(right_wheel) < distance * 77){
+		  error = grey_value-analog(port);
+		  speed_change= error*0.2;
  		  mav(right_wheel ,speed - speed_change);
  		  mav(left_wheel ,speed + speed_change);   
 	  }
-    mav(right_wheel, 0);
-    mav(left_wheel, 0);
-    msleep(100);
+    	mav(right_wheel, 0);
+   	mav(left_wheel, 0);
+   	msleep(100);
 } 
