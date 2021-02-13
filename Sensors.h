@@ -1,3 +1,7 @@
+#define yellow 0
+#define red 1
+#define blue 2
+
 int get_analog_value(int port, int loops){
 
   int mass = 0;
@@ -12,40 +16,23 @@ int get_analog_value(int port, int loops){
 
 }
 
-int colorSense(int color, int loops) {
+int colorSense(int color, int loops){ //color is which color is used
 
     camera_open_black();
-    blobCount = 0;
     blobRaw = 0;
     
-    while(blobCount < loops){
-
+    int i;
+    for(i = 0;i < loops; i++){
+  
         camera_update();
-        if(color == 0){
-            if(get_object_confidence(yellow,0) > 0.4){
-                blobRaw = blobRaw + 1;
-            } 
-        }
-
-        if(color == 1){
-            if(get_object_confidence(blue,0) > 0.4){
-                blobRaw = blobRaw + 1; 
-            }
-        }
-
-        if(color == 2){
-            if(get_object_confidence(red,0) > 0.4){
-                blobRaw = blobRaw + 1; 
-            }
-
-        }
-        blobCount = blobCount + 1;
-
+       
+        blobRaw += get_object_confidence(color,0);
+          
     }
 
 
 
-    if(blobRaw > loops * 65/100){
+    if(blobRaw/loops > 0.65){ //this means it only has to be 65% accurate to allow for it to accept the value 
         return 0;
     }else{
         return 1;
