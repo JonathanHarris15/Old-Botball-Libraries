@@ -80,6 +80,31 @@ void right(int speed, int target){
    	msleep(20);
 }
 
+//A more advanced turn for the lego chasis
+void advanced_right(int speedl, int speedr, int target){
+    
+    float theta = 0;
+    //float start_time = 0;
+    //float end_time = 0;
+    while(theta > -target){
+        msleep(15);
+     
+        //start_time = seconds();
+        
+        mav(0,-speedr);
+        mav(1,speedl);
+        msleep(10);
+        
+        //end_time = seconds() - start_time;
+        theta = theta + ((gyro_z() - bias) * 0.03);
+        printf("theta %f\n",theta);
+        
+    }
+    mav(0,0); 
+    mav(1,0);
+    msleep(20);
+    
+}
 void left(int speed, int target){
      
 	float theta = 0;
@@ -97,7 +122,31 @@ void left(int speed, int target){
     	mav(left_wheel,0);
     	msleep(20);
 }
-
+//a more advanced turn for the lego chasis
+void advanced_left(int speedl, int speedr, int target){
+    
+    float theta = 0;
+    //float start_time = 0;
+    //float end_time = 0;
+    while(theta < target){
+        msleep(15);
+     
+        //start_time = seconds();
+        
+        mav(0,speedr);
+        mav(1,-speedl);
+        msleep(10);
+        
+        //end_time = seconds() - start_time;
+        theta = theta + ((gyro_z() - bias)  * 0.03);
+        printf("theta %f\n",theta);
+        
+    }
+    mav(0,0);
+    mav(1,0);
+    msleep(20);
+    
+}
 
 //A smooth line follow made for use with a regular tophat sensor
 //DISTANCE IS MEASURED IN CM
