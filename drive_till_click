@@ -1,0 +1,26 @@
+void drive_till_click(int speed, int overide_time){
+ 
+      set_create_distance(0);
+
+      int theta = 0;
+      int speed_change = 0;
+      int right_speed = 0;
+      int left_speed = 0;
+      float multiplier = 0.05;
+    float start_time = seconds();
+
+      while(digital(0) == 0 && seconds() - start_time < overide_time){
+         
+          theta += gyro_z() - bias;
+          speed_change = theta * multiplier;
+          right_speed = speed + speed_change;
+          left_speed = speed - speed_change;
+          create_drive_direct(right_speed, left_speed);
+          msleep(15);
+          printf("%f\n",seconds() - start_time);
+
+      } 
+
+      create_drive_direct(0,0);
+      msleep(100);
+}
